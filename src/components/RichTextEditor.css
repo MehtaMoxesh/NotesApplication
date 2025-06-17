@@ -137,6 +137,7 @@
   margin: 1rem 0 0.5rem 0;
   font-weight: 600;
   line-height: 1.25;
+  color: inherit;
 }
 
 .editor h1 { font-size: 1.875rem; }
@@ -148,67 +149,93 @@
 
 .editor p {
   margin: 0.5rem 0;
+  color: inherit;
 }
 
 .editor ul, .editor ol {
   margin: 0.5rem 0;
   padding-left: 1.5rem;
+  color: inherit;
 }
 
 .editor li {
   margin: 0.25rem 0;
+  color: inherit;
 }
 
 .editor blockquote {
   margin: 1rem 0;
   padding: 0.5rem 1rem;
-  border-left: 4px solid #3b82f6;
-  background-color: #f8fafc;
-  font-style: italic;
+  border-left: 4px solid #e5e7eb;
+  background-color: #f9fafb;
+  color: inherit;
 }
 
 .editor.dark blockquote {
+  border-left-color: #4b5563;
   background-color: #374151;
-  border-left-color: #60a5fa;
 }
 
 .editor pre {
   margin: 1rem 0;
   padding: 1rem;
-  background-color: #1f2937;
-  color: #f9fafb;
+  background-color: #f3f4f6;
   border-radius: 0.375rem;
   overflow-x: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
+  color: inherit;
 }
 
 .editor.dark pre {
-  background-color: #111827;
+  background-color: #374151;
 }
 
 .editor code {
-  background-color: #f1f5f9;
-  color: #dc2626;
   padding: 0.125rem 0.25rem;
+  background-color: #f3f4f6;
   border-radius: 0.25rem;
   font-family: 'Courier New', monospace;
   font-size: 0.875em;
+  color: inherit;
 }
 
 .editor.dark code {
-  background-color: #374151;
-  color: #fca5a5;
+  background-color: #4b5563;
 }
 
 .editor strong {
   font-weight: 600;
+  color: inherit;
 }
 
 .editor em {
   font-style: italic;
+  color: inherit;
 }
 
 .editor u {
   text-decoration: underline;
+  color: inherit;
+}
+
+/* Ensure all text content inherits proper colors */
+.editor * {
+  color: inherit;
+}
+
+/* Dark mode specific overrides */
+.dark .editor {
+  color: #f9fafb;
+}
+
+.dark .editor * {
+  color: #f9fafb;
+}
+
+/* Light mode specific overrides */
+.editor:not(.dark) {
+  color: #111827;
+}
+
+.editor:not(.dark) * {
+  color: #111827;
 } 

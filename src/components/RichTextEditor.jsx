@@ -390,7 +390,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
         onKeyDown={handleKeyDown}
         onMouseOver={handleMouseOver}
         onMouseOut={handleMouseOut}
-        className={`editor bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 ${isFocused ? 'focused' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`editor ${isDark ? 'dark' : ''} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 ${isFocused ? 'focused' : ''} ${disabled ? 'disabled' : ''}`}
         style={{
           minHeight: '200px',
           padding: '1rem',
