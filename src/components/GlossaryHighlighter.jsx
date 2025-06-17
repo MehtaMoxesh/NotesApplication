@@ -112,11 +112,7 @@ const GlossaryHighlighter = ({ content, glossary, isDark }) => {
       />
       {hoveredTerm && hoveredTermInfo && (
         <div
-          className={`fixed z-50 max-w-xs p-3 rounded-lg shadow-2xl border transition-all duration-200 transform glossary-popup ${
-            isDark 
-              ? 'bg-gray-800 border-gray-600 text-gray-100 shadow-gray-900/50' 
-              : 'bg-white border-gray-200 text-gray-900 shadow-gray-500/30'
-          }`}
+          className="fixed z-50 max-w-xs p-3 rounded-lg shadow-2xl border transition-all duration-200 transform glossary-popup bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 shadow-gray-500/30 dark:shadow-gray-900/50"
           style={{ 
             position: 'fixed',
             left: popupPosition.x,
@@ -126,9 +122,7 @@ const GlossaryHighlighter = ({ content, glossary, isDark }) => {
             maxWidth: '300px'
           }}
         >
-          <div className={`font-semibold text-sm mb-1 flex items-center gap-2 ${
-            isDark ? 'text-blue-400' : 'text-blue-600'
-          }`}>
+          <div className="font-semibold text-sm mb-1 flex items-center gap-2 text-blue-600 dark:text-blue-400">
             {hoveredTermInfo.isGlossaryTerm ? (
               <Sparkles size={14} className="text-yellow-400" />
             ) : (

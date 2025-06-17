@@ -62,9 +62,21 @@ const App = () => {
         
         // Apply theme preference
         if (prefs.theme === 'system') {
-          setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
+          const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          setIsDark(isSystemDark);
+          if (isSystemDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
         } else {
-          setIsDark(prefs.theme === 'dark');
+          const isDarkMode = prefs.theme === 'dark';
+          setIsDark(isDarkMode);
+          if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
         }
       }
     } catch (err) {
@@ -85,6 +97,33 @@ const App = () => {
       setError('Failed to save user preferences');
     }
   }, [userPreferences]);
+
+  // Handle theme changes
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  // Handle system theme changes
+  useEffect(() => {
+    if (userPreferences.theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e) => {
+        setIsDark(e.matches);
+        if (e.matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, [userPreferences.theme]);
 
   // Load notes with version check and migration
   useEffect(() => {
@@ -161,17 +200,6 @@ const App = () => {
 
     return () => clearTimeout(timeout);
   }, [notes, nextId, userPreferences.autoSave, isLoading]);
-
-  // Handle system theme changes
-  useEffect(() => {
-    if (userPreferences.theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = (e) => setIsDark(e.matches);
-      
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-  }, [userPreferences.theme]);
 
   const createNewNote = useCallback(() => {
     const newNote = {
@@ -295,7 +323,7 @@ const App = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDark ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {error && (
         <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center gap-2">
           <AlertCircle size={20} />
@@ -318,9 +346,7 @@ const App = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleSidebar}
-            className={`lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg ${
-              isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
-            } shadow-lg`}
+            className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg"
           >
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -328,14 +354,24 @@ const App = () => {
           {/* Sidebar */}
           <div className={`fixed lg:static inset-y-0 left-0 z-40 w-80 transform transition-transform duration-300 ease-in-out ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          } ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col`}>
-            <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          } bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}>
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-4">
-                <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                   Smart Notes
                 </h1>
                 <div className="flex items-center gap-2">
-                  <ThemeToggle isDark={isDark} onToggle={setIsDark} />
+                  <ThemeToggle 
+                    isDark={isDark} 
+                    onToggle={() => {
+                      const newDarkMode = !isDark;
+                      setIsDark(newDarkMode);
+                      setUserPreferences(prev => ({
+                        ...prev,
+                        theme: newDarkMode ? 'dark' : 'light'
+                      }));
+                    }} 
+                  />
                   <button
                     onClick={createNewNote}
                     className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -350,7 +386,7 @@ const App = () => {
 
             <div className="flex-1 overflow-y-auto">
               {filteredNotes.length === 0 ? (
-                <div className={`p-4 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   {searchTerm ? 'No notes found' : 'No notes yet'}
                 </div>
               ) : (
@@ -384,18 +420,16 @@ const App = () => {
           <div className="flex-1 flex flex-col min-w-0">
             {selectedNote ? (
               <>
-                <div className={`p-4 border-b ${
-                  isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                }`}>
+                <div className="p-4 border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
                       {selectedNote.isPinned && <Pin size={16} className="text-blue-600 flex-shrink-0" />}
                       {selectedNote.isEncrypted && <Lock size={16} className="text-yellow-500 flex-shrink-0" />}
-                      <h2 className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <h2 className="text-lg font-semibold truncate text-gray-900 dark:text-white">
                         {selectedNote.title}
                       </h2>
                     </div>
-                    <div className={`text-sm hidden sm:block ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className="text-sm hidden sm:block text-gray-500 dark:text-gray-400">
                       Last updated: {new Date(selectedNote.updatedAt).toLocaleString()}
                     </div>
                   </div>
@@ -404,9 +438,7 @@ const App = () => {
                 <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
                   <div className="max-w-4xl mx-auto space-y-4">
                     {/* Editor */}
-                    <div className={`p-2 sm:p-4 rounded-lg border ${
-                      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                    }`}>
+                    <div className="p-2 sm:p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                       <RichTextEditor
                         content={selectedNote.isEncrypted ? '' : (selectedNote.content || '')}
                         onChange={(content) => {
@@ -485,17 +517,13 @@ const App = () => {
                 </div>
               </>
             ) : (
-              <div className={`flex-1 flex items-center justify-center p-4 ${
-                isDark ? 'bg-gray-800' : 'bg-gray-50'
-              }`}>
+              <div className="flex-1 flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-800">
                 <div className="text-center max-w-md">
                   <div className="text-6xl mb-4">🧠</div>
-                  <h2 className={`text-xl font-semibold mb-2 ${
-                    isDark ? 'text-gray-200' : 'text-gray-600'
-                  }`}>
+                  <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
                     Welcome to Smart Notes
                   </h2>
-                  <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <p className="mb-4 text-gray-500 dark:text-gray-400">
                     AI-powered note taking with automatic glossary highlighting
                   </p>
                   <button

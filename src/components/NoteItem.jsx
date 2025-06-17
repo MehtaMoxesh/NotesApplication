@@ -32,12 +32,8 @@ const NoteItem = ({ note, onSelect, onTogglePin, onDelete, isSelected, isDark })
       onClick={() => onSelect(note)}
       className={`p-3 border-b cursor-pointer transition-colors ${
         isSelected
-          ? isDark
-            ? 'bg-blue-600 text-white'
-            : 'bg-blue-100 text-blue-900'
-          : isDark
-          ? 'hover:bg-gray-700 border-gray-700'
-          : 'hover:bg-gray-50 border-gray-200'
+          ? 'bg-blue-100 dark:bg-blue-600 text-blue-900 dark:text-white'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -51,10 +47,8 @@ const NoteItem = ({ note, onSelect, onTogglePin, onDelete, isSelected, isDark })
             )}
             <h3 className={`font-medium truncate ${
               isSelected
-                ? 'text-white'
-                : isDark
-                ? 'text-gray-200'
-                : 'text-gray-900'
+                ? 'text-blue-900 dark:text-white'
+                : 'text-gray-900 dark:text-gray-200'
             }`}>
               {note.title}
             </h3>
@@ -62,20 +56,16 @@ const NoteItem = ({ note, onSelect, onTogglePin, onDelete, isSelected, isDark })
           
           <p className={`text-sm line-clamp-2 ${
             isSelected
-              ? 'text-blue-100'
-              : isDark
-              ? 'text-gray-400'
-              : 'text-gray-600'
+              ? 'text-blue-700 dark:text-blue-100'
+              : 'text-gray-600 dark:text-gray-400'
           }`}>
             {note.isEncrypted ? '🔒 Encrypted note' : preview}
           </p>
           
           <div className={`text-xs mt-1 ${
             isSelected
-              ? 'text-blue-200'
-              : isDark
-              ? 'text-gray-500'
-              : 'text-gray-400'
+              ? 'text-blue-600 dark:text-blue-200'
+              : 'text-gray-400 dark:text-gray-500'
           }`}>
             {new Date(note.updatedAt).toLocaleDateString()}
           </div>
@@ -87,9 +77,7 @@ const NoteItem = ({ note, onSelect, onTogglePin, onDelete, isSelected, isDark })
             className={`p-1 rounded hover:bg-opacity-20 transition-colors ${
               note.isPinned
                 ? 'text-blue-500 hover:bg-blue-500'
-                : isDark
-                ? 'text-gray-400 hover:bg-gray-400'
-                : 'text-gray-500 hover:bg-gray-500'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-500 dark:hover:bg-gray-400'
             }`}
             title={note.isPinned ? 'Unpin note' : 'Pin note'}
           >
@@ -98,9 +86,7 @@ const NoteItem = ({ note, onSelect, onTogglePin, onDelete, isSelected, isDark })
           
           <button
             onClick={handleDelete}
-            className={`p-1 rounded hover:bg-red-500 hover:bg-opacity-20 transition-colors ${
-              isDark ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'
-            }`}
+            className="p-1 rounded hover:bg-red-500 hover:bg-opacity-20 transition-colors text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
             title="Delete note"
           >
             <Trash2 size={14} />

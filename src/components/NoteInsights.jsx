@@ -79,14 +79,10 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
 
   if (isLoading) {
     return (
-      <div className={`p-4 rounded-lg border ${
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
+      <div className="p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-4">
-          <Brain size={20} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-          <h3 className={`text-lg font-semibold ${
-            isDark ? 'text-white' : 'text-gray-900'
-          }`}>
+          <Brain size={20} className="text-purple-600 dark:text-purple-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             AI Insights
           </h3>
         </div>
@@ -98,96 +94,62 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
   }
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
+    <div className="p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <div className="flex items-center gap-2 mb-4">
-        <Brain size={20} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-        <h3 className={`text-lg font-semibold ${
-          isDark ? 'text-white' : 'text-gray-900'
-        }`}>
+        <Brain size={20} className="text-purple-600 dark:text-purple-400" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           AI Insights
         </h3>
       </div>
 
       <div className="space-y-4">
         {/* Summary */}
-        <div className={`p-3 rounded-lg ${
-          isDark ? 'bg-gray-700' : 'bg-purple-50'
-        }`}>
+        <div className="p-3 rounded-lg bg-purple-50 dark:bg-gray-700">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp size={16} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-            <span className={`text-sm font-medium ${
-              isDark ? 'text-purple-400' : 'text-purple-800'
-            }`}>
+            <TrendingUp size={16} className="text-purple-600 dark:text-purple-400" />
+            <span className="text-sm font-medium text-purple-800 dark:text-purple-400">
               Summary
             </span>
           </div>
-          <p className={`text-sm ${
-            isDark ? 'text-gray-300' : 'text-purple-700'
-          }`}>
+          <p className="text-sm text-purple-700 dark:text-gray-300">
             {insights.summary}
           </p>
         </div>
 
         {/* Statistics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className={`p-3 rounded-lg text-center ${
-            isDark ? 'bg-gray-700' : 'bg-blue-50'
-          }`}>
-            <div className={`text-lg font-bold ${
-              isDark ? 'text-blue-400' : 'text-blue-600'
-            }`}>
+          <div className="p-3 rounded-lg text-center bg-blue-50 dark:bg-gray-700">
+            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {insights.wordCount}
             </div>
-            <div className={`text-xs ${
-              isDark ? 'text-gray-400' : 'text-blue-600'
-            }`}>
+            <div className="text-xs text-blue-600 dark:text-gray-400">
               Words
             </div>
           </div>
           
-          <div className={`p-3 rounded-lg text-center ${
-            isDark ? 'bg-gray-700' : 'bg-green-50'
-          }`}>
-            <div className={`text-lg font-bold ${
-              isDark ? 'text-green-400' : 'text-green-600'
-            }`}>
+          <div className="p-3 rounded-lg text-center bg-green-50 dark:bg-gray-700">
+            <div className="text-lg font-bold text-green-600 dark:text-green-400">
               {insights.charCount}
             </div>
-            <div className={`text-xs ${
-              isDark ? 'text-gray-400' : 'text-green-600'
-            }`}>
+            <div className="text-xs text-green-600 dark:text-gray-400">
               Characters
             </div>
           </div>
           
-          <div className={`p-3 rounded-lg text-center ${
-            isDark ? 'bg-gray-700' : 'bg-yellow-50'
-          }`}>
-            <div className={`text-lg font-bold ${
-              isDark ? 'text-yellow-400' : 'text-yellow-600'
-            }`}>
+          <div className="p-3 rounded-lg text-center bg-yellow-50 dark:bg-gray-700">
+            <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
               {insights.sentences}
             </div>
-            <div className={`text-xs ${
-              isDark ? 'text-gray-400' : 'text-yellow-600'
-            }`}>
+            <div className="text-xs text-yellow-600 dark:text-gray-400">
               Sentences
             </div>
           </div>
           
-          <div className={`p-3 rounded-lg text-center ${
-            isDark ? 'bg-gray-700' : 'bg-orange-50'
-          }`}>
-            <div className={`text-lg font-bold ${
-              isDark ? 'text-orange-400' : 'text-orange-600'
-            }`}>
+          <div className="p-3 rounded-lg text-center bg-orange-50 dark:bg-gray-700">
+            <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
               {insights.readingTime}m
             </div>
-            <div className={`text-xs ${
-              isDark ? 'text-gray-400' : 'text-orange-600'
-            }`}>
+            <div className="text-xs text-orange-600 dark:text-gray-400">
               Read Time
             </div>
           </div>
@@ -195,14 +157,10 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
 
         {/* Key Phrases */}
         {insights.keyPhrases.length > 0 && (
-          <div className={`p-3 rounded-lg ${
-            isDark ? 'bg-gray-700' : 'bg-indigo-50'
-          }`}>
+          <div className="p-3 rounded-lg bg-indigo-50 dark:bg-gray-700">
             <div className="flex items-center gap-2 mb-2">
-              <Hash size={16} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
-              <span className={`text-sm font-medium ${
-                isDark ? 'text-indigo-400' : 'text-indigo-800'
-              }`}>
+              <Hash size={16} className="text-indigo-600 dark:text-indigo-400" />
+              <span className="text-sm font-medium text-indigo-800 dark:text-indigo-400">
                 Key Phrases
               </span>
             </div>
@@ -210,11 +168,7 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
               {insights.keyPhrases.map((phrase, index) => (
                 <span
                   key={index}
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    isDark 
-                      ? 'bg-indigo-600 text-indigo-100' 
-                      : 'bg-indigo-100 text-indigo-800'
-                  }`}
+                  className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-600 text-indigo-800 dark:text-indigo-100"
                 >
                   {phrase}
                 </span>
@@ -225,14 +179,10 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
 
         {/* Related Notes */}
         {insights.relatedNotes.length > 0 && (
-          <div className={`p-3 rounded-lg ${
-            isDark ? 'bg-gray-700' : 'bg-teal-50'
-          }`}>
+          <div className="p-3 rounded-lg bg-teal-50 dark:bg-gray-700">
             <div className="flex items-center gap-2 mb-2">
-              <Link size={16} className={isDark ? 'text-teal-400' : 'text-teal-600'} />
-              <span className={`text-sm font-medium ${
-                isDark ? 'text-teal-400' : 'text-teal-800'
-              }`}>
+              <Link size={16} className="text-teal-600 dark:text-teal-400" />
+              <span className="text-sm font-medium text-teal-800 dark:text-teal-400">
                 Related Notes
               </span>
             </div>
@@ -240,9 +190,7 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
               {insights.relatedNotes.map((relatedNote) => (
                 <div
                   key={relatedNote.id}
-                  className={`text-sm p-2 rounded ${
-                    isDark ? 'bg-gray-600 text-gray-300' : 'bg-teal-100 text-teal-700'
-                  }`}
+                  className="text-sm p-2 rounded bg-teal-100 dark:bg-gray-600 text-teal-700 dark:text-gray-300"
                 >
                   {relatedNote.title}
                 </div>
@@ -252,20 +200,14 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
         )}
 
         {/* Recommendations */}
-        <div className={`p-3 rounded-lg ${
-          isDark ? 'bg-gray-700' : 'bg-amber-50'
-        }`}>
+        <div className="p-3 rounded-lg bg-amber-50 dark:bg-gray-700">
           <div className="flex items-center gap-2 mb-2">
-            <Lightbulb size={16} className={isDark ? 'text-amber-400' : 'text-amber-600'} />
-            <span className={`text-sm font-medium ${
-              isDark ? 'text-amber-400' : 'text-amber-800'
-            }`}>
+            <Lightbulb size={16} className="text-amber-600 dark:text-amber-400" />
+            <span className="text-sm font-medium text-amber-800 dark:text-amber-400">
               Recommendations
             </span>
           </div>
-          <ul className={`text-sm space-y-1 ${
-            isDark ? 'text-gray-300' : 'text-amber-700'
-          }`}>
+          <ul className="text-sm space-y-1 text-amber-700 dark:text-gray-300">
             {insights.recommendations.map((rec, index) => (
               <li key={index} className="flex items-start gap-2">
                 <span className="text-amber-500 mt-1">•</span>

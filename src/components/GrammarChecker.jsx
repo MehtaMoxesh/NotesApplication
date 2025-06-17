@@ -213,35 +213,31 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
   const getSeverityColor = (severity) => {
     switch (severity) {
       case 'error':
-        return isDark ? 'text-red-400' : 'text-red-600';
+        return 'text-red-600 dark:text-red-400';
       case 'warning':
-        return isDark ? 'text-yellow-400' : 'text-yellow-600';
+        return 'text-yellow-600 dark:text-yellow-400';
       default:
-        return isDark ? 'text-blue-400' : 'text-blue-600';
+        return 'text-blue-600 dark:text-blue-400';
     }
   };
 
   const getSeverityBg = (severity) => {
     switch (severity) {
       case 'error':
-        return isDark ? 'bg-red-900/20' : 'bg-red-50';
+        return 'bg-red-50 dark:bg-red-900/20';
       case 'warning':
-        return isDark ? 'bg-yellow-900/20' : 'bg-yellow-50';
+        return 'bg-yellow-50 dark:bg-yellow-900/20';
       default:
-        return isDark ? 'bg-blue-900/20' : 'bg-blue-50';
+        return 'bg-blue-50 dark:bg-blue-900/20';
     }
   };
 
   if (isLoading) {
     return (
-      <div className={`p-4 rounded-lg border ${
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
+      <div className="p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-4">
-          <CheckCircle size={20} className={isDark ? 'text-green-400' : 'text-green-600'} />
-          <h3 className={`text-lg font-semibold ${
-            isDark ? 'text-white' : 'text-gray-900'
-          }`}>
+          <CheckCircle size={20} className="text-green-600 dark:text-green-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Grammar Check
           </h3>
         </div>
@@ -253,35 +249,23 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
   }
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
+    <div className="p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <div className="flex items-center gap-2 mb-4">
-        <CheckCircle size={20} className={isDark ? 'text-green-400' : 'text-green-600'} />
-        <h3 className={`text-lg font-semibold ${
-          isDark ? 'text-white' : 'text-gray-900'
-        }`}>
+        <CheckCircle size={20} className="text-green-600 dark:text-green-400" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Grammar Check
         </h3>
         {issues.length > 0 && (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            isDark ? 'bg-red-600 text-red-100' : 'bg-red-100 text-red-800'
-          }`}>
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-600 text-red-800 dark:text-red-100">
             {issues.length} issue{issues.length !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
       {issues.length === 0 ? (
-        <div className={`p-4 rounded-lg text-center ${
-          isDark ? 'bg-gray-700' : 'bg-green-50'
-        }`}>
-          <CheckCircle size={32} className={`mx-auto mb-2 ${
-            isDark ? 'text-green-400' : 'text-green-600'
-          }`} />
-          <p className={`text-sm ${
-            isDark ? 'text-green-400' : 'text-green-700'
-          }`}>
+        <div className="p-4 rounded-lg text-center bg-green-50 dark:bg-gray-700">
+          <CheckCircle size={32} className="mx-auto mb-2 text-green-600 dark:text-green-400" />
+          <p className="text-sm text-green-700 dark:text-green-400">
             No grammar or spelling issues found!
           </p>
         </div>
@@ -290,9 +274,7 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
           {issues.map((issue) => (
             <div
               key={issue.id}
-              className={`p-3 rounded-lg border ${
-                isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-              }`}
+              className="p-3 rounded-lg border bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -301,29 +283,23 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
                       size={16} 
                       className={getSeverityColor(issue.severity)} 
                     />
-                    <span className={`text-sm font-medium capitalize ${
-                      isDark ? 'text-gray-200' : 'text-gray-900'
-                    }`}>
+                    <span className="text-sm font-medium capitalize text-gray-900 dark:text-gray-200">
                       {issue.type} Issue
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       issue.severity === 'error' 
-                        ? isDark ? 'bg-red-600 text-red-100' : 'bg-red-100 text-red-800'
-                        : isDark ? 'bg-yellow-600 text-yellow-100' : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-red-100 dark:bg-red-600 text-red-800 dark:text-red-100'
+                        : 'bg-yellow-100 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-100'
                     }`}>
                       {issue.severity}
                     </span>
                   </div>
                   
-                  <p className={`text-sm mb-2 ${
-                    isDark ? 'text-gray-300' : 'text-gray-600'
-                  }`}>
+                  <p className="text-sm mb-2 text-gray-600 dark:text-gray-300">
                     {issue.description}
                   </p>
                   
-                  <div className={`p-2 rounded text-sm font-mono ${
-                    isDark ? 'bg-gray-600 text-gray-300' : 'bg-gray-100 text-gray-700'
-                  }`}>
+                  <div className="p-2 rounded text-sm font-mono bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
                     <span className="text-red-500">{issue.word}</span>
                     {issue.suggestion && (
                       <>
@@ -334,9 +310,7 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
                   </div>
                   
                   {issue.sentence && (
-                    <p className={`text-xs mt-2 ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
+                    <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">
                       Context: "{issue.sentence.substring(0, 100)}..."
                     </p>
                   )}
@@ -344,11 +318,7 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
                 
                 <button
                   onClick={() => applyCorrection(issue)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isDark 
-                      ? 'bg-green-600 hover:bg-green-700 text-white' 
-                      : 'bg-green-500 hover:bg-green-600 text-white'
-                  }`}
+                  className="p-2 rounded-lg transition-colors bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 text-white"
                   title="Apply correction"
                 >
                   <Zap size={16} />
@@ -360,20 +330,14 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
       )}
 
       {issues.length > 0 && (
-        <div className={`mt-4 p-3 rounded-lg ${
-          isDark ? 'bg-gray-700' : 'bg-blue-50'
-        }`}>
+        <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-gray-700">
           <div className="flex items-center gap-2 mb-2">
-            <Edit3 size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-            <span className={`text-sm font-medium ${
-              isDark ? 'text-blue-400' : 'text-blue-800'
-            }`}>
+            <Edit3 size={16} className="text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-blue-800 dark:text-blue-400">
               Quick Actions
             </span>
           </div>
-          <p className={`text-xs ${
-            isDark ? 'text-gray-300' : 'text-blue-700'
-          }`}>
+          <p className="text-xs text-blue-700 dark:text-gray-300">
             Click the lightning bolt icon next to any issue to automatically apply the correction.
           </p>
         </div>

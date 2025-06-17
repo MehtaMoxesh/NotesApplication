@@ -70,52 +70,36 @@ const NoteEncryption = ({ note, onEncrypt, onDecrypt, isDark }) => {
   };
 
   return (
-    <div className={`p-4 rounded-lg border ${
-      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
+    <div className="p-4 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <div className="flex items-center gap-2 mb-4">
-        <Key size={20} className={isDark ? 'text-yellow-400' : 'text-yellow-600'} />
-        <h3 className={`text-lg font-semibold ${
-          isDark ? 'text-white' : 'text-gray-900'
-        }`}>
+        <Key size={20} className="text-yellow-600 dark:text-yellow-400" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Note Encryption
         </h3>
       </div>
 
       <div className="space-y-4">
         {note.isEncrypted ? (
-          <div className={`p-3 rounded-lg ${
-            isDark ? 'bg-gray-700' : 'bg-yellow-50'
-          }`}>
+          <div className="p-3 rounded-lg bg-yellow-50 dark:bg-gray-700">
             <div className="flex items-center gap-2 mb-2">
               <Lock size={16} className="text-yellow-500" />
-              <span className={`text-sm font-medium ${
-                isDark ? 'text-yellow-400' : 'text-yellow-800'
-              }`}>
+              <span className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
                 This note is encrypted
               </span>
             </div>
-            <p className={`text-sm ${
-              isDark ? 'text-gray-300' : 'text-yellow-700'
-            }`}>
+            <p className="text-sm text-yellow-700 dark:text-gray-300">
               Enter your password to decrypt and view the content.
             </p>
           </div>
         ) : (
-          <div className={`p-3 rounded-lg ${
-            isDark ? 'bg-gray-700' : 'bg-green-50'
-          }`}>
+          <div className="p-3 rounded-lg bg-green-50 dark:bg-gray-700">
             <div className="flex items-center gap-2 mb-2">
               <Unlock size={16} className="text-green-500" />
-              <span className={`text-sm font-medium ${
-                isDark ? 'text-green-400' : 'text-green-800'
-              }`}>
+              <span className="text-sm font-medium text-green-800 dark:text-green-400">
                 This note is not encrypted
               </span>
             </div>
-            <p className={`text-sm ${
-              isDark ? 'text-gray-300' : 'text-green-700'
-            }`}>
+            <p className="text-sm text-green-700 dark:text-gray-300">
               Encrypt this note to protect its content with a password.
             </p>
           </div>
@@ -128,27 +112,19 @@ const NoteEncryption = ({ note, onEncrypt, onDecrypt, isDark }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={note.isEncrypted ? 'Enter password to decrypt' : 'Enter password to encrypt'}
-              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isDark
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-              }`}
+              className="w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded ${
-                isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
 
           {error && (
-            <p className={`text-sm ${
-              isDark ? 'text-red-400' : 'text-red-600'
-            }`}>
+            <p className="text-sm text-red-600 dark:text-red-400">
               {error}
             </p>
           )}
@@ -182,9 +158,7 @@ const NoteEncryption = ({ note, onEncrypt, onDecrypt, isDark }) => {
           </div>
         </div>
 
-        <div className={`text-xs ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
-        }`}>
+        <div className="text-xs text-gray-500 dark:text-gray-400">
           <p>• Passwords are not stored and cannot be recovered</p>
           <p>• Encrypted notes cannot be edited until decrypted</p>
           <p>• Use a strong password for better security</p>

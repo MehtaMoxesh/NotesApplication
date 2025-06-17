@@ -49,7 +49,22 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
     (command, value = null) => {
       editorRef.current?.focus();
       restoreSelection();
-      document.execCommand(command, false, value);
+      
+      // For formatting commands, check if the command is already applied
+      if (['bold', 'italic', 'underline'].includes(command)) {
+        const isApplied = document.queryCommandState(command);
+        if (isApplied) {
+          // If already applied, remove the formatting
+          document.execCommand(command, false, null);
+        } else {
+          // If not applied, add the formatting
+          document.execCommand(command, false, null);
+        }
+      } else {
+        // For other commands (lists, alignment, etc.), execute normally
+        document.execCommand(command, false, value);
+      }
+      
       saveSelection();
       setTimeout(() => {
         if (editorRef.current) {
@@ -134,46 +149,56 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
   const highlightGlossaryTerms = (html) => {
     if (!html) return html;
     
-    // Create a temporary div to extract text content
+    // Create a temporary div to work with the HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
-    const textContent = tempDiv.textContent || tempDiv.innerText || '';
     
-    // Detect terms using AI-like logic
+    // Detect terms using AI-like logic from text content
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
     const detectedTerms = detectKeyTerms(textContent);
     
-    let processedHtml = html;
-    
-    // Sort terms by length (longest first) to avoid partial replacements
-    detectedTerms.sort((a, b) => b.length - a.length);
-    
-    // Add previous keywords to the list of terms to highlight
+    // Add glossary terms to the list
     const allTerms = [...new Set([...detectedTerms, ...Object.keys(glossaryTerms)])];
     
-    allTerms.forEach(term => {
-      const regex = new RegExp(`\\b(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'gi');
-      processedHtml = processedHtml.replace(regex, (match) => {
-        // Check if the match is already inside a glossary-term span
-        const beforeMatch = processedHtml.substring(0, processedHtml.indexOf(match));
-        const openSpans = (beforeMatch.match(/<span[^>]*class="glossary-term"/g) || []).length;
-        const closeSpans = (beforeMatch.match(/<\/span>/g) || []).length;
+    // Function to recursively process text nodes
+    const processTextNode = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        let processedText = text;
         
-        if (openSpans > closeSpans) {
-          // We're inside a glossary-term span, don't highlight
-          return match;
+        // Sort terms by length (longest first) to avoid partial replacements
+        const sortedTerms = [...allTerms].sort((a, b) => b.length - a.length);
+        
+        sortedTerms.forEach(term => {
+          const regex = new RegExp(`\\b(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'gi');
+          processedText = processedText.replace(regex, (match) => {
+            // Use different background colors for detected terms vs glossary terms
+            const isGlossaryTerm = glossaryTerms[term.toLowerCase()];
+            const bgColor = isGlossaryTerm 
+              ? (isDark ? '#3b4252' : '#eef2ff')  // Glossary terms
+              : (isDark ? '#2d3748' : '#f3f4f6'); // Detected terms
+            
+            return `<span class="glossary-term" data-term="${match.toLowerCase()}" style="background-color: ${bgColor}; cursor: help; border-bottom: 1px dotted #6366f1; padding: 0 2px; border-radius: 2px;">${match}</span>`;
+          });
+        });
+        
+        if (processedText !== text) {
+          const wrapper = document.createElement('span');
+          wrapper.innerHTML = processedText;
+          node.parentNode.replaceChild(wrapper, node);
         }
-        
-        // Use different background colors for detected terms vs glossary terms
-        const isGlossaryTerm = glossaryTerms[term.toLowerCase()];
-        const bgColor = isGlossaryTerm 
-          ? (isDark ? '#3b4252' : '#eef2ff')  // Glossary terms
-          : (isDark ? '#2d3748' : '#f3f4f6'); // Detected terms
-        
-        return `<span class="glossary-term" data-term="${match.toLowerCase()}" style="background-color: ${bgColor}; cursor: help; border-bottom: 1px dotted #6366f1; padding: 0 2px; border-radius: 2px;">${match}</span>`;
-      });
-    });
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Recursively process child nodes
+        const children = Array.from(node.childNodes);
+        children.forEach(processTextNode);
+      }
+    };
     
-    return processedHtml;
+    // Process all text nodes in the document
+    const allNodes = Array.from(tempDiv.childNodes);
+    allNodes.forEach(processTextNode);
+    
+    return tempDiv.innerHTML;
   };
 
   // Auto-highlight terms after typing with debounce
@@ -245,7 +270,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
           }
         }
       }
-    }, 800); // Increased debounce time for better performance
+    }, 1000); // Increased debounce time for better performance
 
     return () => clearTimeout(timeout);
   }, [content, hasEdited, isDark]);
@@ -262,7 +287,6 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
     { command: 'bold', icon: Bold, title: 'Bold' },
     { command: 'italic', icon: Italic, title: 'Italic' },
     { command: 'underline', icon: Underline, title: 'Underline' },
-    { command: 'insertUnorderedList', icon: List, title: 'Bullet List' },
     { command: 'insertOrderedList', icon: ListOrdered, title: 'Numbered List' },
     { command: 'justifyLeft', icon: AlignLeft, title: 'Align Left' },
     { command: 'justifyCenter', icon: AlignCenter, title: 'Align Center' },
@@ -294,15 +318,15 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
   };
 
   return (
-    <div className={`rich-text-editor ${isDark ? 'dark' : ''} ${disabled ? 'disabled' : ''}`}>
+    <div className={`rich-text-editor dark:bg-gray-800 ${disabled ? 'disabled' : ''}`}>
       {/* Toolbar */}
-      <div className={`toolbar ${isDark ? 'dark' : ''}`}>
+      <div className="toolbar bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
         <div className="toolbar-group">
           {toolbarButtons.slice(0, 3).map((button) => (
             <button
               key={button.command}
               onClick={() => execCommand(button.command, button.value)}
-              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              className="toolbar-button text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100"
               title={button.title}
               disabled={disabled}
             >
@@ -316,7 +340,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
             <button
               key={button.command}
               onClick={() => execCommand(button.command, button.value)}
-              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              className="toolbar-button text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100"
               title={button.title}
               disabled={disabled}
             >
@@ -330,7 +354,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
             <button
               key={button.command}
               onClick={() => execCommand(button.command, button.value)}
-              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              className="toolbar-button text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100"
               title={button.title}
               disabled={disabled}
             >
@@ -344,7 +368,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
             <button
               key={button.command}
               onClick={() => execCommand(button.command, button.value)}
-              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              className="toolbar-button text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100"
               title={button.title}
               disabled={disabled}
             >
@@ -366,15 +390,11 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
         onKeyDown={handleKeyDown}
         onMouseOver={handleMouseOver}
         onMouseOut={handleMouseOut}
-        className={`editor ${isDark ? 'dark' : ''} ${isFocused ? 'focused' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`editor bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 ${isFocused ? 'focused' : ''} ${disabled ? 'disabled' : ''}`}
         style={{
           minHeight: '200px',
           padding: '1rem',
-          border: '1px solid',
-          borderColor: isDark ? '#374151' : '#d1d5db',
           borderRadius: '0.5rem',
-          backgroundColor: isDark ? '#1f2937' : '#ffffff',
-          color: isDark ? '#f9fafb' : '#111827',
           fontSize: '14px',
           lineHeight: '1.6',
           outline: 'none',
@@ -386,11 +406,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
       {/* Glossary Popup */}
       {hoveredTerm && hoveredTermInfo && (
         <div
-          className={`fixed z-50 max-w-xs p-3 rounded-lg shadow-2xl border transition-all duration-200 transform glossary-popup ${
-            isDark 
-              ? 'bg-gray-800 border-gray-600 text-gray-100 shadow-gray-900/50' 
-              : 'bg-white border-gray-200 text-gray-900 shadow-gray-500/30'
-          }`}
+          className="fixed z-50 max-w-xs p-3 rounded-lg shadow-2xl border transition-all duration-200 transform glossary-popup bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 shadow-gray-500/30 dark:shadow-gray-900/50"
           style={{ 
             position: 'fixed',
             left: popupPosition.x,
@@ -400,9 +416,7 @@ const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
             maxWidth: '300px'
           }}
         >
-          <div className={`font-semibold text-sm mb-1 flex items-center gap-2 ${
-            isDark ? 'text-blue-400' : 'text-blue-600'
-          }`}>
+          <div className="font-semibold text-sm mb-1 flex items-center gap-2 text-blue-600 dark:text-blue-400">
             {hoveredTermInfo.isGlossaryTerm ? (
               <Sparkles size={14} className="text-yellow-400" />
             ) : (
