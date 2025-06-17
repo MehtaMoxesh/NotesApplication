@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Edit3, Zap } from 'lucide-react';
 
 // Common grammar rules and their corrections
 const GRAMMAR_RULES = [
@@ -86,132 +86,167 @@ const STYLE_RULES = [
 
 const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
   const [issues, setIssues] = useState([]);
-  const [isChecking, setIsChecking] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
   useEffect(() => {
-    if (!content) return;
     checkGrammar();
   }, [content]);
 
-  const checkGrammar = () => {
-    setIsChecking(true);
-    setError(null);
-
-    try {
-      const newIssues = [];
-      const textContent = content.replace(/<[^>]+>/g, ' '); // Remove HTML tags
-
-      // Check grammar rules
-      GRAMMAR_RULES.forEach(rule => {
-        let match;
-        while ((match = rule.pattern.exec(textContent)) !== null) {
-          newIssues.push({
-            type: 'grammar',
-            word: match[0],
-            message: rule.message,
-            correction: rule.correction,
-            index: match.index,
-            length: match[0].length
-          });
-        }
-      });
-
-      // Check style rules
-      STYLE_RULES.forEach(rule => {
-        let match;
-        while ((match = rule.pattern.exec(textContent)) !== null) {
-          newIssues.push({
-            type: 'style',
-            word: match[0],
-            message: rule.message,
-            correction: rule.correction,
-            index: match.index,
-            length: match[0].length
-          });
-        }
-      });
-
-      // Sort issues by position in text
-      newIssues.sort((a, b) => a.index - b.index);
-      setIssues(newIssues);
-    } catch (err) {
-      console.error('Error checking grammar:', err);
-      setError('Failed to check grammar');
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  const handleApplyCorrection = (issue) => {
-    if (!issue.correction) return;
-
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = content;
-    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+  const checkGrammar = async () => {
+    setIsLoading(true);
     
-    let newContent;
-    if (issue.type === 'style' && issue.word.match(/[A-Z]{2,}/)) {
-      // Convert to title case
-      newContent = textContent.replace(
-        issue.word,
-        issue.word.charAt(0).toUpperCase() + issue.word.slice(1).toLowerCase()
-      );
-    } else {
-      newContent = textContent.replace(issue.word, issue.correction);
-    }
-
-    // Preserve HTML structure
-    const htmlContent = content.replace(
-      new RegExp(issue.word, 'g'),
-      issue.correction || issue.word.charAt(0).toUpperCase() + issue.word.slice(1).toLowerCase()
-    );
-
-    onApplyCorrection(htmlContent);
+    // Simulate AI processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const textContent = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
+    const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    const detectedIssues = [];
+    
+    sentences.forEach((sentence, sentenceIndex) => {
+      const words = sentence.trim().split(/\s+/);
+      
+      // Check for common issues
+      words.forEach((word, wordIndex) => {
+        const lowerWord = word.toLowerCase();
+        
+        // Check for common spelling mistakes
+        if (lowerWord === 'teh') {
+          detectedIssues.push({
+            id: `${sentenceIndex}-${wordIndex}`,
+            type: 'spelling',
+            severity: 'error',
+            word: word,
+            suggestion: 'the',
+            sentence: sentence,
+            position: { sentenceIndex, wordIndex },
+            description: 'Common spelling mistake'
+          });
+        }
+        
+        if (lowerWord === 'recieve') {
+          detectedIssues.push({
+            id: `${sentenceIndex}-${wordIndex}`,
+            type: 'spelling',
+            severity: 'error',
+            word: word,
+            suggestion: 'receive',
+            sentence: sentence,
+            position: { sentenceIndex, wordIndex },
+            description: 'Incorrect spelling'
+          });
+        }
+        
+        if (lowerWord === 'seperate') {
+          detectedIssues.push({
+            id: `${sentenceIndex}-${wordIndex}`,
+            type: 'spelling',
+            severity: 'error',
+            word: word,
+            suggestion: 'separate',
+            sentence: sentence,
+            position: { sentenceIndex, wordIndex },
+            description: 'Incorrect spelling'
+          });
+        }
+      });
+      
+      // Check for sentence structure issues
+      if (sentence.length > 100) {
+        detectedIssues.push({
+          id: `sentence-${sentenceIndex}`,
+          type: 'style',
+          severity: 'warning',
+          word: sentence.substring(0, 50) + '...',
+          suggestion: 'Consider breaking this long sentence into shorter ones',
+          sentence: sentence,
+          position: { sentenceIndex },
+          description: 'Long sentence detected'
+        });
+      }
+      
+      // Check for capitalization issues
+      if (sentence.length > 0 && sentence[0] !== sentence[0].toUpperCase()) {
+        detectedIssues.push({
+          id: `cap-${sentenceIndex}`,
+          type: 'grammar',
+          severity: 'error',
+          word: sentence[0],
+          suggestion: sentence[0].toUpperCase(),
+          sentence: sentence,
+          position: { sentenceIndex },
+          description: 'Sentence should start with capital letter'
+        });
+      }
+    });
+    
+    setIssues(detectedIssues);
+    setIsLoading(false);
   };
 
-  if (isChecking) {
-    return (
-      <div className={`p-4 rounded-lg border ${
-        isDark 
-          ? 'bg-gray-800 border-gray-700' 
-          : 'bg-white border-gray-200'
-      }`}>
-        <div className="flex items-center justify-center gap-2">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-          <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-            Checking grammar...
-          </span>
-        </div>
-      </div>
-    );
-  }
+  const applyCorrection = (issue) => {
+    if (!onApplyCorrection) return;
+    
+    const textContent = content.replace(/<[^>]*>/g, '');
+    const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    let newContent = content;
+    
+    if (issue.type === 'spelling') {
+      // Replace the specific word
+      const regex = new RegExp(`\\b${issue.word}\\b`, 'gi');
+      newContent = content.replace(regex, issue.suggestion);
+    } else if (issue.type === 'grammar' && issue.description.includes('capital')) {
+      // Fix capitalization
+      const sentenceStart = sentences[issue.position.sentenceIndex];
+      if (sentenceStart) {
+        const correctedSentence = sentenceStart.charAt(0).toUpperCase() + sentenceStart.slice(1);
+        newContent = content.replace(sentenceStart, correctedSentence);
+      }
+    }
+    
+    onApplyCorrection(newContent);
+    setSelectedIssue(null);
+  };
 
-  if (error) {
-    return (
-      <div className={`p-4 rounded-lg border ${
-        isDark 
-          ? 'bg-red-900/20 border-red-700 text-red-400' 
-          : 'bg-red-50 border-red-200 text-red-700'
-      }`}>
-        <div className="flex items-center gap-2">
-          <AlertCircle size={20} />
-          <span>{error}</span>
-        </div>
-      </div>
-    );
-  }
+  const getSeverityColor = (severity) => {
+    switch (severity) {
+      case 'error':
+        return isDark ? 'text-red-400' : 'text-red-600';
+      case 'warning':
+        return isDark ? 'text-yellow-400' : 'text-yellow-600';
+      default:
+        return isDark ? 'text-blue-400' : 'text-blue-600';
+    }
+  };
 
-  if (issues.length === 0) {
+  const getSeverityBg = (severity) => {
+    switch (severity) {
+      case 'error':
+        return isDark ? 'bg-red-900/20' : 'bg-red-50';
+      case 'warning':
+        return isDark ? 'bg-yellow-900/20' : 'bg-yellow-50';
+      default:
+        return isDark ? 'bg-blue-900/20' : 'bg-blue-50';
+    }
+  };
+
+  if (isLoading) {
     return (
       <div className={`p-4 rounded-lg border ${
-        isDark 
-          ? 'bg-green-900/20 border-green-700 text-green-400' 
-          : 'bg-green-50 border-green-200 text-green-700'
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}>
-        <div className="flex items-center gap-2">
-          <CheckCircle size={20} />
-          <span>No grammar issues found</span>
+        <div className="flex items-center gap-2 mb-4">
+          <CheckCircle size={20} className={isDark ? 'text-green-400' : 'text-green-600'} />
+          <h3 className={`text-lg font-semibold ${
+            isDark ? 'text-white' : 'text-gray-900'
+          }`}>
+            Grammar Check
+          </h3>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
         </div>
       </div>
     );
@@ -219,72 +254,130 @@ const GrammarChecker = ({ content, isDark, onApplyCorrection }) => {
 
   return (
     <div className={`p-4 rounded-lg border ${
-      isDark 
-        ? 'bg-gray-800 border-gray-700 text-gray-100' 
-        : 'bg-white border-gray-200 text-gray-900'
+      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
     }`}>
       <div className="flex items-center gap-2 mb-4">
-        <XCircle size={20} className="text-yellow-500" />
-        <h3 className="font-semibold">Grammar Check</h3>
-        <span className={`text-sm ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
+        <CheckCircle size={20} className={isDark ? 'text-green-400' : 'text-green-600'} />
+        <h3 className={`text-lg font-semibold ${
+          isDark ? 'text-white' : 'text-gray-900'
         }`}>
-          ({issues.length} issues found)
-        </span>
+          Grammar Check
+        </h3>
+        {issues.length > 0 && (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            isDark ? 'bg-red-600 text-red-100' : 'bg-red-100 text-red-800'
+          }`}>
+            {issues.length} issue{issues.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
-      <div className="space-y-3">
-        {issues.map((issue, index) => (
-          <div
-            key={index}
-            className={`p-3 rounded-lg ${
-              isDark
-                ? 'bg-gray-700/50 hover:bg-gray-700'
-                : 'bg-gray-50 hover:bg-gray-100'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className={`p-1 rounded ${
-                issue.type === 'grammar'
-                  ? isDark ? 'bg-blue-900/30' : 'bg-blue-100'
-                  : isDark ? 'bg-purple-900/30' : 'bg-purple-100'
-              }`}>
-                {issue.type === 'grammar' ? (
-                  <AlertCircle size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-                ) : (
-                  <AlertCircle size={16} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`font-medium ${
-                    isDark ? 'text-gray-200' : 'text-gray-700'
+      {issues.length === 0 ? (
+        <div className={`p-4 rounded-lg text-center ${
+          isDark ? 'bg-gray-700' : 'bg-green-50'
+        }`}>
+          <CheckCircle size={32} className={`mx-auto mb-2 ${
+            isDark ? 'text-green-400' : 'text-green-600'
+          }`} />
+          <p className={`text-sm ${
+            isDark ? 'text-green-400' : 'text-green-700'
+          }`}>
+            No grammar or spelling issues found!
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {issues.map((issue) => (
+            <div
+              key={issue.id}
+              className={`p-3 rounded-lg border ${
+                isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle 
+                      size={16} 
+                      className={getSeverityColor(issue.severity)} 
+                    />
+                    <span className={`text-sm font-medium capitalize ${
+                      isDark ? 'text-gray-200' : 'text-gray-900'
+                    }`}>
+                      {issue.type} Issue
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      issue.severity === 'error' 
+                        ? isDark ? 'bg-red-600 text-red-100' : 'bg-red-100 text-red-800'
+                        : isDark ? 'bg-yellow-600 text-yellow-100' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {issue.severity}
+                    </span>
+                  </div>
+                  
+                  <p className={`text-sm mb-2 ${
+                    isDark ? 'text-gray-300' : 'text-gray-600'
                   }`}>
-                    {issue.word}
-                  </span>
-                  {issue.correction && (
-                    <button
-                      onClick={() => handleApplyCorrection(issue)}
-                      className={`px-2 py-0.5 text-xs rounded ${
-                        isDark
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-blue-500 hover:bg-blue-600 text-white'
-                      }`}
-                    >
-                      Fix
-                    </button>
+                    {issue.description}
+                  </p>
+                  
+                  <div className={`p-2 rounded text-sm font-mono ${
+                    isDark ? 'bg-gray-600 text-gray-300' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    <span className="text-red-500">{issue.word}</span>
+                    {issue.suggestion && (
+                      <>
+                        <span className="mx-2">→</span>
+                        <span className="text-green-600">{issue.suggestion}</span>
+                      </>
+                    )}
+                  </div>
+                  
+                  {issue.sentence && (
+                    <p className={`text-xs mt-2 ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                      Context: "{issue.sentence.substring(0, 100)}..."
+                    </p>
                   )}
                 </div>
-                <p className={`text-sm ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  {issue.message}
-                </p>
+                
+                <button
+                  onClick={() => applyCorrection(issue)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isDark 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-green-500 hover:bg-green-600 text-white'
+                  }`}
+                  title="Apply correction"
+                >
+                  <Zap size={16} />
+                </button>
               </div>
             </div>
+          ))}
+        </div>
+      )}
+
+      {issues.length > 0 && (
+        <div className={`mt-4 p-3 rounded-lg ${
+          isDark ? 'bg-gray-700' : 'bg-blue-50'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Edit3 size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+            <span className={`text-sm font-medium ${
+              isDark ? 'text-blue-400' : 'text-blue-800'
+            }`}>
+              Quick Actions
+            </span>
           </div>
-        ))}
-      </div>
+          <p className={`text-xs ${
+            isDark ? 'text-gray-300' : 'text-blue-700'
+          }`}>
+            Click the lightning bolt icon next to any issue to automatically apply the correction.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

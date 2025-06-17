@@ -1,15 +1,19 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Sun, Moon, Sparkles, Info } from 'lucide-react';
+import { 
+  Bold, Italic, Underline, List, ListOrdered, 
+  AlignLeft, AlignCenter, AlignRight, Quote, Code, Sun, Moon, Sparkles, Info 
+} from 'lucide-react';
 import { glossaryTerms, detectKeyTerms } from '../data/glossary';
 import './RichTextEditor.css';
 
-const RichTextEditor = ({ content, onChange, isDark }) => {
+const RichTextEditor = ({ content, onChange, isDark, disabled = false }) => {
   const editorRef = useRef(null);
   const [selection, setSelection] = useState(null);
   const [hoveredTerm, setHoveredTerm] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [hasEdited, setHasEdited] = useState(false);
   const [hoveredTermInfo, setHoveredTermInfo] = useState(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
@@ -254,13 +258,17 @@ const RichTextEditor = ({ content, onChange, isDark }) => {
     }
   }, [hasEdited, content]);
 
-  const formatActions = [
-    { icon: Bold, command: 'bold', title: 'Bold (Ctrl+B)' },
-    { icon: Italic, command: 'italic', title: 'Italic (Ctrl+I)' },
-    { icon: Underline, command: 'underline', title: 'Underline (Ctrl+U)' },
-    { icon: AlignLeft, command: 'justifyLeft', title: 'Align Left' },
-    { icon: AlignCenter, command: 'justifyCenter', title: 'Align Center' },
-    { icon: AlignRight, command: 'justifyRight', title: 'Align Right' },
+  const toolbarButtons = [
+    { command: 'bold', icon: Bold, title: 'Bold' },
+    { command: 'italic', icon: Italic, title: 'Italic' },
+    { command: 'underline', icon: Underline, title: 'Underline' },
+    { command: 'insertUnorderedList', icon: List, title: 'Bullet List' },
+    { command: 'insertOrderedList', icon: ListOrdered, title: 'Numbered List' },
+    { command: 'justifyLeft', icon: AlignLeft, title: 'Align Left' },
+    { command: 'justifyCenter', icon: AlignCenter, title: 'Align Center' },
+    { command: 'justifyRight', icon: AlignRight, title: 'Align Right' },
+    { command: 'formatBlock', value: 'blockquote', icon: Quote, title: 'Quote' },
+    { command: 'formatBlock', value: 'pre', icon: Code, title: 'Code Block' }
   ];
 
   const fontSizes = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
@@ -286,192 +294,134 @@ const RichTextEditor = ({ content, onChange, isDark }) => {
   };
 
   return (
-    <div 
-      className={`min-h-screen p-6 transition-colors duration-300 ${isDark ? 'dark' : ''} ${
-        isDark 
-          ? 'bg-gray-900 text-gray-100' 
-          : 'bg-gradient-to-br from-blue-50 to-indigo-100 text-gray-900'
-      }`}
-      onMouseMove={handleMouseMove}
-    >
-      {/* Header */}
-      <div className="max-w-6xl mx-auto mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-            🧠 Smart Rich Text Editor
-          </h1>
+    <div className={`rich-text-editor ${isDark ? 'dark' : ''} ${disabled ? 'disabled' : ''}`}>
+      {/* Toolbar */}
+      <div className={`toolbar ${isDark ? 'dark' : ''}`}>
+        <div className="toolbar-group">
+          {toolbarButtons.slice(0, 3).map((button) => (
+            <button
+              key={button.command}
+              onClick={() => execCommand(button.command, button.value)}
+              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              title={button.title}
+              disabled={disabled}
+            >
+              <button.icon size={16} />
+            </button>
+          ))}
         </div>
         
-        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          AI-powered text editor with automatic glossary highlighting
-        </p>
-      </div>
-
-      {/* Editor Container */}
-      <div className="max-w-6xl mx-auto">
-        <div className={`border rounded-xl overflow-hidden shadow-2xl transition-all duration-300 ${
-          isDark 
-            ? 'border-gray-600 bg-gray-800 shadow-gray-900/50' 
-            : 'border-gray-200 bg-white shadow-gray-500/20'
-        }`}>
-          {/* Toolbar */}
-          <div className={`border-b p-4 flex items-center gap-2 flex-wrap ${
-            isDark 
-              ? 'border-gray-600 bg-gray-700' 
-              : 'border-gray-200 bg-gray-50'
-          }`}>
-            {formatActions.map((action, index) => (
-              <button
-                key={index}
-                onClick={() => execCommand(action.command)}
-                className={`p-3 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 ${
-                  isDark 
-                    ? 'hover:bg-gray-600 text-gray-300 hover:text-white' 
-                    : 'hover:bg-gray-200 text-gray-700 hover:text-gray-900'
-                }`}
-                title={action.title}
-              >
-                <action.icon size={18} />
-              </button>
-            ))}
-            
-            <div className={`w-px h-8 mx-3 ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`} />
-            
-            <div className="flex items-center gap-3">
-              <Type size={18} className={isDark ? 'text-gray-300' : 'text-gray-700'} />
-              <select
-                onChange={(e) => execCommand('fontSize', e.target.value)}
-                className={`text-sm border rounded-lg px-3 py-2 transition-colors ${
-                  isDark 
-                    ? 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600' 
-                    : 'border-gray-300 bg-white hover:bg-gray-50'
-                }`}
-                defaultValue="16"
-              >
-                {fontSizes.map((size) => (
-                  <option key={size} value={size.replace('px', '')}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Editor */}
-          <div
-            ref={editorRef}
-            contentEditable
-            onInput={handleInput}
-            onMouseUp={saveSelection}
-            onKeyUp={saveSelection}
-            onKeyDown={handleKeyDown}
-            onMouseOver={handleMouseOver}
-            onMouseOut={handleMouseOut}
-            className={`p-6 min-h-96 focus:outline-none leading-relaxed text-lg transition-colors ${
-              isDark ? 'text-gray-100' : 'text-gray-800'
-            }`}
-            style={{ 
-              fontSize: '16px',
-              lineHeight: '1.7'
-            }}
-            suppressContentEditableWarning={true}
-            placeholder="Start writing your note here..."
-          />
-
-          {/* Glossary Popup */}
-          {hoveredTerm && hoveredTermInfo && (
-            <div
-              className={`fixed z-50 max-w-xs p-3 rounded-lg shadow-2xl border transition-all duration-200 transform glossary-popup ${
-                isDark 
-                  ? 'bg-gray-800 border-gray-600 text-gray-100 shadow-gray-900/50' 
-                  : 'bg-white border-gray-200 text-gray-900 shadow-gray-500/30'
-              }`}
-              style={{ 
-                position: 'fixed',
-                left: popupPosition.x,
-                top: popupPosition.y,
-                pointerEvents: 'none',
-                transform: 'translateY(-50%)',
-                maxWidth: '300px'
-              }}
+        <div className="toolbar-group">
+          {toolbarButtons.slice(3, 5).map((button) => (
+            <button
+              key={button.command}
+              onClick={() => execCommand(button.command, button.value)}
+              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              title={button.title}
+              disabled={disabled}
             >
-              <div className={`font-semibold text-sm mb-1 flex items-center gap-2 ${
-                isDark ? 'text-blue-400' : 'text-blue-600'
-              }`}>
-                {hoveredTermInfo.isGlossaryTerm ? (
-                  <Sparkles size={14} className="text-yellow-400" />
-                ) : (
-                  <Info size={14} className="text-gray-400" />
-                )}
-                {hoveredTermInfo.term.charAt(0).toUpperCase() + hoveredTermInfo.term.slice(1)}
-              </div>
-              <div className="text-sm leading-relaxed">
-                {hoveredTermInfo.isGlossaryTerm ? (
-                  hoveredTermInfo.definition
-                ) : (
-                  <>
-                    <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Basic Information:</div>
-                    {hoveredTermInfo.basicInfo}
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+              <button.icon size={16} />
+            </button>
+          ))}
+        </div>
+        
+        <div className="toolbar-group">
+          {toolbarButtons.slice(5, 8).map((button) => (
+            <button
+              key={button.command}
+              onClick={() => execCommand(button.command, button.value)}
+              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              title={button.title}
+              disabled={disabled}
+            >
+              <button.icon size={16} />
+            </button>
+          ))}
+        </div>
+        
+        <div className="toolbar-group">
+          {toolbarButtons.slice(8).map((button) => (
+            <button
+              key={button.command}
+              onClick={() => execCommand(button.command, button.value)}
+              className={`toolbar-button ${isDark ? 'dark' : ''}`}
+              title={button.title}
+              disabled={disabled}
+            >
+              <button.icon size={16} />
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* AI Information Panel */}
-      <div className="max-w-6xl mx-auto mt-8">
-        <div className={`border rounded-xl p-6 shadow-lg transition-all duration-300 ${
-          isDark 
-            ? 'border-gray-600 bg-gray-800 shadow-gray-900/50' 
-            : 'border-gray-200 bg-white shadow-gray-500/20'
-        }`}>
-          <div className="flex items-center gap-3 mb-4">
-            <Sparkles size={24} className={isDark ? 'text-yellow-400' : 'text-blue-600'} />
-            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              AI-Powered Features
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Smart Term Detection
-              </h3>
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                The editor automatically detects and highlights technical terms as you type. 
-                Hover over any highlighted term to see its definition or basic information.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Intelligent Glossary
-              </h3>
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                Our AI-powered glossary provides detailed definitions for technical terms. 
-                Terms with <Sparkles size={12} className="inline text-yellow-400" /> have full definitions, 
-                while others show basic information.
-              </p>
-            </div>
-          </div>
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable={!disabled}
+        onInput={handleInput}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
+        onKeyDown={handleKeyDown}
+        onMouseOver={handleMouseOver}
+        onMouseOut={handleMouseOut}
+        className={`editor ${isDark ? 'dark' : ''} ${isFocused ? 'focused' : ''} ${disabled ? 'disabled' : ''}`}
+        style={{
+          minHeight: '200px',
+          padding: '1rem',
+          border: '1px solid',
+          borderColor: isDark ? '#374151' : '#d1d5db',
+          borderRadius: '0.5rem',
+          backgroundColor: isDark ? '#1f2937' : '#ffffff',
+          color: isDark ? '#f9fafb' : '#111827',
+          fontSize: '14px',
+          lineHeight: '1.6',
+          outline: 'none',
+          overflowY: 'auto'
+        }}
+        placeholder="Start writing your note..."
+      />
 
-          <div className={`mt-6 p-4 rounded-lg ${
-            isDark ? 'bg-gray-700/50' : 'bg-blue-50'
+      {/* Glossary Popup */}
+      {hoveredTerm && hoveredTermInfo && (
+        <div
+          className={`fixed z-50 max-w-xs p-3 rounded-lg shadow-2xl border transition-all duration-200 transform glossary-popup ${
+            isDark 
+              ? 'bg-gray-800 border-gray-600 text-gray-100 shadow-gray-900/50' 
+              : 'bg-white border-gray-200 text-gray-900 shadow-gray-500/30'
+          }`}
+          style={{ 
+            position: 'fixed',
+            left: popupPosition.x,
+            top: popupPosition.y,
+            pointerEvents: 'none',
+            transform: 'translateY(-50%)',
+            maxWidth: '300px'
+          }}
+        >
+          <div className={`font-semibold text-sm mb-1 flex items-center gap-2 ${
+            isDark ? 'text-blue-400' : 'text-blue-600'
           }`}>
-            <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-              Try typing these terms:
-            </h4>
-            <ul className={`text-sm space-y-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>• <span className="font-medium">JavaScript</span> - A programming language</li>
-              <li>• <span className="font-medium">React</span> - A UI library</li>
-              <li>• <span className="font-medium">API</span> - Application Programming Interface</li>
-              <li>• <span className="font-medium">Cloud Computing</span> - Remote servers and services</li>
-            </ul>
+            {hoveredTermInfo.isGlossaryTerm ? (
+              <Sparkles size={14} className="text-yellow-400" />
+            ) : (
+              <Info size={14} className="text-gray-400" />
+            )}
+            {hoveredTermInfo.term.charAt(0).toUpperCase() + hoveredTermInfo.term.slice(1)}
+          </div>
+          <div className="text-sm leading-relaxed">
+            {hoveredTermInfo.isGlossaryTerm ? (
+              hoveredTermInfo.definition
+            ) : (
+              <>
+                <div className="text-gray-500 dark:text-gray-400 text-xs mb-1">Basic Information:</div>
+                {hoveredTermInfo.basicInfo}
+              </>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

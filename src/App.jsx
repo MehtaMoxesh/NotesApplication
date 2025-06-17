@@ -1,6 +1,6 @@
 /**
  * Smart Notes App
- * Copyright (c) 2024 [Your Name]
+ * Copyright (c) 2024 Moxesh Mehta
  * 
  * This is an original work created as a demonstration of modern web development skills.
  * Unauthorized copying, distribution, or use of this code will be considered plagiarism.
@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Pin, Lock, Unlock, AlertCircle } from 'lucide-react';
+import { Plus, Pin, Lock, Unlock, AlertCircle, Menu, X } from 'lucide-react';
 import SearchBar from './components/SearchBar';
 import NoteItem from './components/NoteItem';
 import RichTextEditor from './components/RichTextEditor';
@@ -42,6 +42,7 @@ const App = () => {
   const [editorContent, setEditorContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userPreferences, setUserPreferences] = useState({
     autoSave: true,
     spellCheck: true,
@@ -285,6 +286,14 @@ const App = () => {
     return titleMatch || contentMatch;
   });
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className={`min-h-screen flex flex-col ${isDark ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       {error && (
@@ -305,11 +314,21 @@ const App = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <div className={`flex h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+        <div className="flex h-screen relative">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={toggleSidebar}
+            className={`lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg ${
+              isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+            } shadow-lg`}
+          >
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
           {/* Sidebar */}
-          <div className={`w-80 border-r flex flex-col ${
-            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
+          <div className={`fixed lg:static inset-y-0 left-0 z-40 w-80 transform transition-transform duration-300 ease-in-out ${
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          } ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r flex flex-col`}>
             <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between mb-4">
                 <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -339,7 +358,10 @@ const App = () => {
                   <NoteItem
                     key={note.id}
                     note={note}
-                    onSelect={setSelectedNote}
+                    onSelect={(note) => {
+                      setSelectedNote(note);
+                      closeSidebar(); // Close sidebar on mobile when note is selected
+                    }}
                     onTogglePin={togglePin}
                     onDelete={deleteNote}
                     isSelected={selectedNote?.id === note.id}
@@ -350,31 +372,39 @@ const App = () => {
             </div>
           </div>
 
+          {/* Overlay for mobile */}
+          {isSidebarOpen && (
+            <div
+              className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+              onClick={closeSidebar}
+            />
+          )}
+
           {/* Main Content */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0">
             {selectedNote ? (
               <>
                 <div className={`p-4 border-b ${
                   isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                 }`}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {selectedNote.isPinned && <Pin size={16} className="text-blue-600" />}
-                      {selectedNote.isEncrypted && <Lock size={16} className="text-yellow-500" />}
-                      <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      {selectedNote.isPinned && <Pin size={16} className="text-blue-600 flex-shrink-0" />}
+                      {selectedNote.isEncrypted && <Lock size={16} className="text-yellow-500 flex-shrink-0" />}
+                      <h2 className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {selectedNote.title}
                       </h2>
                     </div>
-                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className={`text-sm hidden sm:block ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Last updated: {new Date(selectedNote.updatedAt).toLocaleString()}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex-1 p-4 overflow-y-auto">
+                <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
                   <div className="max-w-4xl mx-auto space-y-4">
                     {/* Editor */}
-                    <div className={`p-4 rounded-lg border ${
+                    <div className={`p-2 sm:p-4 rounded-lg border ${
                       isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                     }`}>
                       <RichTextEditor
@@ -404,7 +434,7 @@ const App = () => {
                             setNotes((prev) => prev.map((note) => note.id === selectedNote.id ? updatedNote : note));
                             setSelectedNote(updatedNote);
                           }}
-                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
                         >
                           Save
                         </button>
@@ -455,10 +485,10 @@ const App = () => {
                 </div>
               </>
             ) : (
-              <div className={`flex-1 flex items-center justify-center ${
+              <div className={`flex-1 flex items-center justify-center p-4 ${
                 isDark ? 'bg-gray-800' : 'bg-gray-50'
               }`}>
-                <div className="text-center">
+                <div className="text-center max-w-md">
                   <div className="text-6xl mb-4">🧠</div>
                   <h2 className={`text-xl font-semibold mb-2 ${
                     isDark ? 'text-gray-200' : 'text-gray-600'
@@ -470,7 +500,7 @@ const App = () => {
                   </p>
                   <button
                     onClick={createNewNote}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
                   >
                     Create New Note
                   </button>

@@ -1,209 +1,219 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Lightbulb, BookOpen, Link, AlertCircle } from 'lucide-react';
+import { Brain, TrendingUp, Link, Lightbulb, Clock, Hash } from 'lucide-react';
 
 const NoteInsights = ({ note, allNotes, isDark }) => {
   const [insights, setInsights] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!note || note.isEncrypted) return;
-    analyzeNote();
-  }, [note]);
+    generateInsights();
+  }, [note, allNotes]);
 
-  const analyzeNote = async () => {
+  const generateInsights = async () => {
     setIsLoading(true);
-    setError(null);
-
-    try {
-      // Extract text content from HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = note.content;
-      const textContent = tempDiv.textContent || tempDiv.innerText || '';
-
-      // Basic NLP-like analysis
-      const words = textContent.toLowerCase().split(/\s+/);
-      const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
-      
-      // Calculate basic metrics
-      const wordCount = words.length;
-      const sentenceCount = sentences.length;
-      const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / wordCount;
-      
-      // Extract key phrases (simple implementation)
-      const wordFreq = {};
-      words.forEach(word => {
-        if (word.length > 3) { // Ignore short words
-          wordFreq[word] = (wordFreq[word] || 0) + 1;
-        }
-      });
-      
-      const keyPhrases = Object.entries(wordFreq)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 5)
-        .map(([word]) => word);
-
-      // Find related notes based on common words
-      const relatedNotes = allNotes
-        .filter(otherNote => 
-          otherNote.id !== note.id && 
-          !otherNote.isEncrypted &&
-          otherNote.content.toLowerCase().split(/\s+/)
-            .some(word => keyPhrases.includes(word))
-        )
-        .slice(0, 3);
-
-      // Generate summary
-      const summary = sentences.length > 0
-        ? sentences.slice(0, 2).join('. ') + '.'
-        : 'No content to summarize.';
-
-      // Generate recommendations
-      const recommendations = [];
-      
-      if (wordCount < 50) {
-        recommendations.push('Consider adding more details to make this note more comprehensive.');
+    
+    // Simulate AI processing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const content = note.content || '';
+    const textContent = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
+    
+    const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
+    const charCount = textContent.length;
+    const sentences = textContent.split(/[.!?]+/).filter(sentence => sentence.trim().length > 0);
+    const paragraphs = content.split(/<\/p>|<br\s*\/?>/).filter(p => p.trim().length > 0);
+    
+    // Extract key phrases (simple implementation)
+    const words = textContent.toLowerCase().match(/\b\w+\b/g) || [];
+    const wordFreq = {};
+    words.forEach(word => {
+      if (word.length > 3) {
+        wordFreq[word] = (wordFreq[word] || 0) + 1;
       }
-      
-      if (sentenceCount > 10 && avgWordLength > 6) {
-        recommendations.push('This note might benefit from being split into multiple notes for better organization.');
-      }
-      
-      if (keyPhrases.length < 3) {
-        recommendations.push('Try adding more specific technical terms to improve glossary highlighting.');
-      }
-
-      // Update insights
-      setInsights({
-        summary,
-        metrics: {
-          wordCount,
-          sentenceCount,
-          avgWordLength: avgWordLength.toFixed(1)
-        },
-        keyPhrases,
-        relatedNotes,
-        recommendations
-      });
-    } catch (err) {
-      console.error('Error analyzing note:', err);
-      setError('Failed to analyze note content');
-    } finally {
-      setIsLoading(false);
+    });
+    
+    const keyPhrases = Object.entries(wordFreq)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([word]) => word);
+    
+    // Find related notes
+    const relatedNotes = allNotes
+      .filter(otherNote => 
+        otherNote.id !== note.id && 
+        !otherNote.isEncrypted &&
+        (otherNote.title.toLowerCase().includes(keyPhrases[0]?.toLowerCase() || '') ||
+         otherNote.content.toLowerCase().includes(keyPhrases[0]?.toLowerCase() || ''))
+      )
+      .slice(0, 3);
+    
+    // Generate recommendations
+    const recommendations = [];
+    if (wordCount < 50) {
+      recommendations.push('Consider adding more details to make this note more comprehensive');
     }
+    if (paragraphs.length < 2) {
+      recommendations.push('Try breaking your content into multiple paragraphs for better readability');
+    }
+    if (!keyPhrases.length) {
+      recommendations.push('Add more specific terms to help with categorization');
+    }
+    if (recommendations.length === 0) {
+      recommendations.push('Great note! Consider adding tags or categories for better organization');
+    }
+    
+    setInsights({
+      summary: sentences.length > 0 ? sentences.slice(0, 2).join('. ') + '.' : 'No content to summarize',
+      keyPhrases,
+      wordCount,
+      charCount,
+      sentences: sentences.length,
+      paragraphs: paragraphs.length,
+      relatedNotes,
+      recommendations,
+      readingTime: Math.ceil(wordCount / 200) // Average reading speed
+    });
+    
+    setIsLoading(false);
   };
-
-  if (note?.isEncrypted) {
-    return (
-      <div className={`p-4 rounded-lg border ${
-        isDark 
-          ? 'bg-gray-800 border-gray-700 text-gray-400' 
-          : 'bg-white border-gray-200 text-gray-500'
-      }`}>
-        <div className="flex items-center gap-2">
-          <Lock size={20} />
-          <span>Note is encrypted. Insights are not available.</span>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
       <div className={`p-4 rounded-lg border ${
-        isDark 
-          ? 'bg-gray-800 border-gray-700' 
-          : 'bg-white border-gray-200'
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}>
-        <div className="flex items-center justify-center gap-2">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-          <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-            Analyzing note...
-          </span>
+        <div className="flex items-center gap-2 mb-4">
+          <Brain size={20} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
+          <h3 className={`text-lg font-semibold ${
+            isDark ? 'text-white' : 'text-gray-900'
+          }`}>
+            AI Insights
+          </h3>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
         </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className={`p-4 rounded-lg border ${
-        isDark 
-          ? 'bg-red-900/20 border-red-700 text-red-400' 
-          : 'bg-red-50 border-red-200 text-red-700'
-      }`}>
-        <div className="flex items-center gap-2">
-          <AlertCircle size={20} />
-          <span>{error}</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (!insights) return null;
 
   return (
     <div className={`p-4 rounded-lg border ${
-      isDark 
-        ? 'bg-gray-800 border-gray-700 text-gray-100' 
-        : 'bg-white border-gray-200 text-gray-900'
+      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
     }`}>
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles size={20} className="text-yellow-500" />
-        <h3 className="font-semibold">AI Insights</h3>
+        <Brain size={20} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
+        <h3 className={`text-lg font-semibold ${
+          isDark ? 'text-white' : 'text-gray-900'
+        }`}>
+          AI Insights
+        </h3>
       </div>
 
       <div className="space-y-4">
         {/* Summary */}
-        <div>
+        <div className={`p-3 rounded-lg ${
+          isDark ? 'bg-gray-700' : 'bg-purple-50'
+        }`}>
           <div className="flex items-center gap-2 mb-2">
-            <BookOpen size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-            <h4 className="font-medium">Summary</h4>
+            <TrendingUp size={16} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
+            <span className={`text-sm font-medium ${
+              isDark ? 'text-purple-400' : 'text-purple-800'
+            }`}>
+              Summary
+            </span>
           </div>
-          <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className={`text-sm ${
+            isDark ? 'text-gray-300' : 'text-purple-700'
+          }`}>
             {insights.summary}
           </p>
         </div>
 
-        {/* Metrics */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb size={16} className={isDark ? 'text-green-400' : 'text-green-600'} />
-            <h4 className="font-medium">Metrics</h4>
-          </div>
-          <div className={`grid grid-cols-3 gap-2 text-sm ${
-            isDark ? 'text-gray-300' : 'text-gray-600'
+        {/* Statistics */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className={`p-3 rounded-lg text-center ${
+            isDark ? 'bg-gray-700' : 'bg-blue-50'
           }`}>
-            <div className="p-2 rounded bg-opacity-10 bg-blue-500">
-              <div className="font-medium">{insights.metrics.wordCount}</div>
-              <div className="text-xs">Words</div>
+            <div className={`text-lg font-bold ${
+              isDark ? 'text-blue-400' : 'text-blue-600'
+            }`}>
+              {insights.wordCount}
             </div>
-            <div className="p-2 rounded bg-opacity-10 bg-green-500">
-              <div className="font-medium">{insights.metrics.sentenceCount}</div>
-              <div className="text-xs">Sentences</div>
+            <div className={`text-xs ${
+              isDark ? 'text-gray-400' : 'text-blue-600'
+            }`}>
+              Words
             </div>
-            <div className="p-2 rounded bg-opacity-10 bg-purple-500">
-              <div className="font-medium">{insights.metrics.avgWordLength}</div>
-              <div className="text-xs">Avg. Word Length</div>
+          </div>
+          
+          <div className={`p-3 rounded-lg text-center ${
+            isDark ? 'bg-gray-700' : 'bg-green-50'
+          }`}>
+            <div className={`text-lg font-bold ${
+              isDark ? 'text-green-400' : 'text-green-600'
+            }`}>
+              {insights.charCount}
+            </div>
+            <div className={`text-xs ${
+              isDark ? 'text-gray-400' : 'text-green-600'
+            }`}>
+              Characters
+            </div>
+          </div>
+          
+          <div className={`p-3 rounded-lg text-center ${
+            isDark ? 'bg-gray-700' : 'bg-yellow-50'
+          }`}>
+            <div className={`text-lg font-bold ${
+              isDark ? 'text-yellow-400' : 'text-yellow-600'
+            }`}>
+              {insights.sentences}
+            </div>
+            <div className={`text-xs ${
+              isDark ? 'text-gray-400' : 'text-yellow-600'
+            }`}>
+              Sentences
+            </div>
+          </div>
+          
+          <div className={`p-3 rounded-lg text-center ${
+            isDark ? 'bg-gray-700' : 'bg-orange-50'
+          }`}>
+            <div className={`text-lg font-bold ${
+              isDark ? 'text-orange-400' : 'text-orange-600'
+            }`}>
+              {insights.readingTime}m
+            </div>
+            <div className={`text-xs ${
+              isDark ? 'text-gray-400' : 'text-orange-600'
+            }`}>
+              Read Time
             </div>
           </div>
         </div>
 
         {/* Key Phrases */}
         {insights.keyPhrases.length > 0 && (
-          <div>
+          <div className={`p-3 rounded-lg ${
+            isDark ? 'bg-gray-700' : 'bg-indigo-50'
+          }`}>
             <div className="flex items-center gap-2 mb-2">
-              <Link size={16} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-              <h4 className="font-medium">Key Phrases</h4>
+              <Hash size={16} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
+              <span className={`text-sm font-medium ${
+                isDark ? 'text-indigo-400' : 'text-indigo-800'
+              }`}>
+                Key Phrases
+              </span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1">
               {insights.keyPhrases.map((phrase, index) => (
                 <span
                   key={index}
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    isDark
-                      ? 'bg-purple-900/30 text-purple-300'
-                      : 'bg-purple-100 text-purple-700'
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    isDark 
+                      ? 'bg-indigo-600 text-indigo-100' 
+                      : 'bg-indigo-100 text-indigo-800'
                   }`}
                 >
                   {phrase}
@@ -215,19 +225,23 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
 
         {/* Related Notes */}
         {insights.relatedNotes.length > 0 && (
-          <div>
+          <div className={`p-3 rounded-lg ${
+            isDark ? 'bg-gray-700' : 'bg-teal-50'
+          }`}>
             <div className="flex items-center gap-2 mb-2">
-              <Link size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-              <h4 className="font-medium">Related Notes</h4>
+              <Link size={16} className={isDark ? 'text-teal-400' : 'text-teal-600'} />
+              <span className={`text-sm font-medium ${
+                isDark ? 'text-teal-400' : 'text-teal-800'
+              }`}>
+                Related Notes
+              </span>
             </div>
-            <div className="space-y-2">
-              {insights.relatedNotes.map(relatedNote => (
+            <div className="space-y-1">
+              {insights.relatedNotes.map((relatedNote) => (
                 <div
                   key={relatedNote.id}
-                  className={`p-2 rounded text-sm ${
-                    isDark
-                      ? 'bg-blue-900/20 text-blue-300'
-                      : 'bg-blue-50 text-blue-700'
+                  className={`text-sm p-2 rounded ${
+                    isDark ? 'bg-gray-600 text-gray-300' : 'bg-teal-100 text-teal-700'
                   }`}
                 >
                   {relatedNote.title}
@@ -238,24 +252,28 @@ const NoteInsights = ({ note, allNotes, isDark }) => {
         )}
 
         {/* Recommendations */}
-        {insights.recommendations.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Lightbulb size={16} className={isDark ? 'text-yellow-400' : 'text-yellow-600'} />
-              <h4 className="font-medium">Recommendations</h4>
-            </div>
-            <ul className={`space-y-2 text-sm ${
-              isDark ? 'text-gray-300' : 'text-gray-600'
+        <div className={`p-3 rounded-lg ${
+          isDark ? 'bg-gray-700' : 'bg-amber-50'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb size={16} className={isDark ? 'text-amber-400' : 'text-amber-600'} />
+            <span className={`text-sm font-medium ${
+              isDark ? 'text-amber-400' : 'text-amber-800'
             }`}>
-              {insights.recommendations.map((rec, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>{rec}</span>
-                </li>
-              ))}
-            </ul>
+              Recommendations
+            </span>
           </div>
-        )}
+          <ul className={`text-sm space-y-1 ${
+            isDark ? 'text-gray-300' : 'text-amber-700'
+          }`}>
+            {insights.recommendations.map((rec, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="text-amber-500 mt-1">•</span>
+                <span>{rec}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
